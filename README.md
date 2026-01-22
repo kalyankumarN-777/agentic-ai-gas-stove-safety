@@ -1,4 +1,4 @@
-Agentic AI-Based Unattended Gas Stove Safety System
+**Agentic AI-Based Unattended Gas Stove Safety System**
 
 Overview
 This project presents a small-scale Agentic AI system designed to detect unattended gas stove usage in households and autonomously take safety actions. The system reduces gas wastage, prevents domestic accidents, and promotes responsible energy consumption.
