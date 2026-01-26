@@ -1,54 +1,40 @@
-Agentic AI-Based Unattended Gas Stove Safety System (ESP32-CAM)
+# FlameGuard AI – Agentic Gas Stove Safety System (ESP32 + MQ-2 + Solenoid)
 
 Overview
-This project implements an **Agentic AI-based kitchen safety system** using the **ESP32-CAM** module.  
-The system detects whether the stove flame is ON (vision-based dim flame detection) and checks whether a person is present near the stove (vision-based motion detection). If the stove is left unattended, the system computes a **risk score**, learns user behavior, and triggers an emergency siren alert.
+FlameGuard AI is a small-scale **Agentic AI-based kitchen safety system** that detects unsafe gas stove conditions and autonomously takes action. The system monitors gas concentration using an **MQ-2 gas sensor** and detects human presence using a **PIR sensor**. If gas is detected while no person is present for a risky duration, the system automatically **shuts off the gas supply using a solenoid valve** (via relay) and triggers an emergency alarm.
 
-This is a **small-scale and sustainable prototype** designed for real-world household safety.
+This project supports sustainability by reducing gas wastage and preventing accidents.
 
 ---
 
 Problem Statement
-Gas stoves are often left unattended in households due to distractions or multitasking. This can lead to:
-- Fuel wastage
-- Fire hazards
-- Unsafe cooking environments
+Gas stoves are often left unattended in households due to distraction or multitasking, leading to:
+- Gas wastage
+- Fire hazards and accidents
+- Unsafe indoor conditions
 
-Most existing systems only provide alerts and lack autonomous decision-making and action.
+Most existing solutions only provide alerts and depend on humans to respond. This creates the need for an autonomous system that can detect risk and take action automatically.
 
 ---
 
 Proposed Solution
-The system acts as an intelligent agent that:
-- **Perceives** the kitchen environment using the ESP32-CAM camera
-- **Detects stove flame** using ROI brightness + flicker analysis (works with dim blue flame)
-- **Detects human presence** using motion-based frame difference analysis
-- **Calculates risk score (0–100)**
-- **Learns normal unattended time** and adapts safety timing
-- **Acts autonomously** using an emergency siren tone and an LED indicator output
+The proposed system acts as an intelligent agent that:
+- Detects gas leakage or gas flow using MQ-2 sensor
+- Detects human presence using PIR motion sensor
+- Computes a risk score based on gas level, unattended duration, and learned behavior
+- Automatically cuts off gas using a relay-controlled solenoid valve
+- Triggers an emergency buzzer alarm
 
 ---
 
 Why Agentic AI?
-This system follows the Agentic AI loop:
+The system follows the Agentic AI loop:
 
 **Sense → Think → Act → Learn**
-
-- **Sense:** captures camera frames continuously
-- **Think:** identifies flame + presence + risk score
-- **Act:** triggers emergency siren when risk is high
-- **Learn:** adapts unattended threshold based on user behavior
-
----
-
-How Human Presence is Detected
-The system does not use face recognition. Instead, it detects **human presence using motion-based vision**:
-1. The ESP32-CAM captures consecutive grayscale frames.
-2. A small 8×8 sample (64 pixels) is extracted from each frame.
-3. The average difference between the current and previous frame samples is calculated.
-4. If the difference exceeds a threshold, motion is detected and human presence is assumed.
-
-To reduce false "no presence" cases, the system also keeps a short **presence hold time**, meaning it will treat the user as present for a few seconds even if motion becomes low.
+- **Sense:** reads gas levels + presence data
+- **Think:** evaluates risk score and unattended time
+- **Act:** cuts gas + triggers alarm
+- **Learn:** adapts safe unattended threshold over time
 
 ---
 
@@ -59,57 +45,67 @@ SDG Alignment
 ---
 
 Components Used
-- ESP32-CAM (AI Thinker)
-- 5mm LED + 220Ω/330Ω resistor (indicator)
-- Passive buzzer / small speaker (emergency siren)
-- FTDI USB-to-TTL programmer (uploading)
+- ESP32 Development Board
+- MQ-2 Gas Sensor (Analog output)
+- PIR Motion Sensor
+- Relay Module (1-channel, 5V)
+- Solenoid Gas Valve (gas hose control)
+- Buzzer / Speaker (alarm)
 - Jumper wires + breadboard
-- 5V power supply (recommended 5V 2A)
+- 5V / 12V power supply (based on solenoid)
 
 ---
 
-Connections
-### LED (Indicator)
-GPIO12 → 220Ω resistor → LED (+)  
-LED (–) → GND
+Connections (Example Wiring)
+### MQ-2 Gas Sensor
+- VCC → 5V
+- GND → GND
+- AO  → ESP32 GPIO34 (Analog)
 
-### Speaker/Buzzer (Emergency Tone)
-GPIO15 → Speaker (+)  
-Speaker (–) → GND
+PIR Sensor
+- VCC → 5V
+- GND → GND
+- OUT → ESP32 GPIO13
+
+Relay (Solenoid control)
+- Relay IN  → ESP32 GPIO26
+- Relay VCC → 5V
+- Relay GND → GND
+
+Buzzer
+- Buzzer + → ESP32 GPIO25
+- Buzzer – → GND
+
+> Note: Solenoid power must match its rating (commonly 12V).  
+> Use relay contacts (COM/NO) to control solenoid power safely.
 
 ---
 
-How to Run
-1. Upload code to ESP32-CAM using FTDI.
-2. Remove GPIO0–GND after uploading.
-3. Press RST to run.
-4. Open Serial Monitor at **115200 baud**.
-5. Demo:
-   - Use a phone flashlight/candle near the camera to simulate flame ON.
-   - Move away from camera to simulate unattended stove.
-   - Risk score increases → siren plays.
-
----
-
-Sustainability Impact
-- Helps prevent unattended stove hazards
-- Encourages responsible energy and fuel usage
-- Low-cost, low-power, on-device processing
+How It Works
+1. Detect gas presence using MQ-2 sensor
+2. Detect human presence using PIR sensor
+3. If gas is detected and no one is present:
+   - Start unattended timer
+   - Compute risk score
+4. If risk becomes high:
+   - Cut off gas supply using solenoid valve
+   - Activate emergency alarm
+5. System learns user behavior and adapts safe unattended duration
 
 ---
 
 Responsible AI Considerations
-- No personal data storage
-- No face identification
-- On-device processing only
-- Transparent decision logic (explainable thresholds)
+- No personal data collection
+- No camera surveillance
+- Transparent decision logic (risk scoring + thresholds)
+- Local processing only
 
 ---
 
 Future Enhancements
-- Add real gas sensor (MQ-2) for gas leakage detection
-- Add relay + solenoid valve for real gas shutoff
-- Add mobile alerts (Telegram/Blynk)
-- Multi-burner multi-agent system
+- Add ESP32-CAM for vision-based presence detection
+- Add Telegram/mobile notifications
+- Add multi-burner stove monitoring
+- Add cloud dashboard for analytics
 
 ---
